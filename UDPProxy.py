@@ -3,6 +3,12 @@ import requests
 import json
 from scd30_i2c import SCD30
 from gpiozero import LED
+from socket import *
+
+serverPort = 12000
+serverSocket = socket(AF_INET, SOCK_STREAM)
+serverSocket.bind(('', serverPort))
+serverSocket.listen(1)
 
 headersArray = {'Content-type': 'application/json'}
 def post(postJson):
@@ -18,14 +24,14 @@ time.sleep(2)
 led = LED(18)
 
 try: 
+    connectionSocket, addr = serverSocket.accept()
     while True:
         if scd30.get_data_ready():
             m = scd30.read_measurement()
             if m is not None:
-                #print(f"CO2: {m[0]:.2f}ppm, temp: {m[1]:.2f}'C, rh: {m[2]:.2f}%")
-                #print(m)
-                jsonM = json.dumps({"Humidity": m[2], "CO2": m[0], "Temperature": m[1]})
-                post(jsonM)
+                jsonM = json.dumps({"Humidity": round(m[2]), "CO2": round(m[0]), "Temperature": round(m[1])})
+                connectionSocket.send(jsonM.encode())
+#                post(jsonM)
                 
                 if m[0] < 1000:
                     led.off()
