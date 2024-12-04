@@ -1,0 +1,50 @@
+from socket import *
+import json
+import time
+from scd30_i2c import SCD30
+from gpiozero import LED
+
+try: 
+
+    scd30 = SCD30()
+
+    scd30.set_measurement_interval(2)
+    scd30.start_periodic_measurement()
+
+    #serverPort = 12000
+    #serverSocket = socket(AF_INET, SOCK_STREAM)
+    #serverSocket.bind(('', serverPort))
+    #serverSocket.listen(1)
+
+    serverName = '255.255.255.255'
+    serverPort = 10100
+    clientSocket = socket(AF_INET, SOCK_DGRAM)
+    clientSocket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
+    time.sleep(2)
+    #led = LED(18)
+    #connectionSocket, addr = serverSocket.accept()
+
+    while True:
+        if scd30.get_data_ready():
+            m = scd30.read_measurement()
+            if m is not None:
+                jsonM = json.dumps({"location": "R-D3.07", "humidity": round(m[2]), "cO2": round(m[0]), "temperature": round(m[1])})
+
+                #connectionSocket.send(jsonM.encode())
+                clientSocket.sendto(jsonM.encode(), (serverName, serverPort))
+                
+                
+#                if m[0] < 1000:
+#                    led.off()
+
+#                if m[0] >= 1000:
+#                    led.on()
+
+            time.sleep(10)
+        else:
+            time.sleep(0.2)
+except KeyboardInterrupt:
+    print('Interrupted')
+
+clientSocket.close()
