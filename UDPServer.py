@@ -1,6 +1,11 @@
 from socket import *
 import requests
 
+def post(postJson):
+        response = requests.post("https://airqualityrest20241202114729.azurewebsites.net/api/AirQualities", data=postJson, headers=headersArray)
+        
+        print(response)
+
 try: 
     serverPort = 10100
     serverSocket = socket(AF_INET, SOCK_DGRAM)
@@ -11,10 +16,6 @@ try:
     print("The server is ready")
 
     headersArray = {'Content-type': 'application/json'}
-    def post(postJson):
-        response = requests.post("https://airqualityrest20241202114729.azurewebsites.net/api/AirQualities", data=postJson, headers=headersArray)
-        
-        print(response)
 
     while True:
         message, clientAddress = serverSocket.recvfrom(2048)
