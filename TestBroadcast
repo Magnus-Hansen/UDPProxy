@@ -6,6 +6,44 @@ from gpiozero import LED
 from gpiozero import Button
 import threading
 
+def main_stuff():
+    try:
+        m = scd30.read_measurement()
+        if m is not None:
+            jsonM = json.dumps({"location": "R-D3.07", "humidity": round(m[2]), "cO2": round(m[0]), "temperature": round(m[1])})
+    #            connectionSocket.send(jsonM.encode())
+            clientSocket.sendto(jsonM.encode(), (serverName, serverPort))
+    except:
+        print("error reading")
+                
+        if m[0] < 1000:
+            led.off()
+
+        if m[0] >= 1000:
+            led.on()
+def interval_sensor():
+    while True:
+        try:
+            if scd30.get_data_ready():
+                main_stuff()
+
+                time.sleep(1*60)
+            else:
+                time.sleep(0.2)
+        except:
+            print("error in interval sensor")
+    
+def button_sensor():
+    while True:
+        try:
+            if button.is_pressed:
+                main_stuff()
+                time.sleep(1)
+
+            time.sleep(1)
+        except:
+            print("error in in button sensor")
+
 try: 
 
     scd30 = SCD30()
@@ -28,44 +66,6 @@ try:
     button = Button(23)
     
     #connectionSocket, addr = serverSocket.accept()
-
-    def main_stuff():
-        try:
-            m = scd30.read_measurement()
-            if m is not None:
-                jsonM = json.dumps({"location": "R-D3.07", "humidity": round(m[2]), "cO2": round(m[0]), "temperature": round(m[1])})
-    #            connectionSocket.send(jsonM.encode())
-                clientSocket.sendto(jsonM.encode(), (serverName, serverPort))
-        except:
-            print("error reading")
-                
-            if m[0] < 1000:
-               led.off()
-
-            if m[0] >= 1000:
-               led.on()
-    def interval_sensor():
-        while True:
-            try:
-                if scd30.get_data_ready():
-                    main_stuff()
-
-                    time.sleep(1*60)
-                else:
-                    time.sleep(0.2)
-            except:
-                print("error in interval sensor")
-    
-    def button_sensor():
-        while True:
-            try:
-                if button.is_pressed:
-                    main_stuff()
-                    time.sleep(1)
-
-                time.sleep(1)
-            except:
-                print("error in in button sensor")
 
     while True:
 
