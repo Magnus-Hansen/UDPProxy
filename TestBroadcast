@@ -13,21 +13,23 @@ def main_stuff():
             jsonM = json.dumps({"location": "R-D3.07", "humidity": round(m[2]), "cO2": round(m[0]), "temperature": round(m[1])})
     #            connectionSocket.send(jsonM.encode())
             clientSocket.sendto(jsonM.encode(), (serverName, serverPort))
+
+            if m[0] < 1000:
+                led.off()
+
+            if m[0] >= 1000:
+                led.on()
+
     except:
         print("error reading")
                 
-        if m[0] < 1000:
-            led.off()
-
-        if m[0] >= 1000:
-            led.on()
 def interval_sensor():
     while True:
         try:
             if scd30.get_data_ready():
                 main_stuff()
 
-                time.sleep(1*60)
+                time.sleep(10*60)
             else:
                 time.sleep(0.2)
         except:
